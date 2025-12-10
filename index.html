@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real Time Freeman Family Comedy Rankings</title>
+  <style>
+    :root {
+      --bg-start: #0f1117;
+      --bg-end: #171b24;
+      --card: #161a22;
+      --card-border: #1f2430;
+      --shadow-1: 0 20px 60px rgba(0, 0, 0, 0.45);
+      --shadow-2: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      --text-strong: #e8ebf2;
+      --text-muted: #a0a4ae;
+      --accent: #6b7bff;
+      --glow: rgba(107, 123, 255, 0.24);
+      --flash: rgba(107, 123, 255, 0.14);
+      --divider: #222836;
+      --radius: 14px;
+      --dur: 500ms;
+      --stagger: 50ms;
+      --mobile-padding: 18px;
+      --max-width: 740px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.04), transparent 32%), radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.05), transparent 34%), linear-gradient(135deg, var(--bg-start), var(--bg-end));
+      color: var(--text-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px 48px;
+    }
+
+    .page {
+      width: 100%;
+      max-width: var(--max-width);
+      background: rgba(17, 20, 27, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 22px;
+      box-shadow: var(--shadow-1);
+      padding: 28px clamp(18px, 4vw, 34px) 32px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 32px);
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 15px;
+      color: var(--text-muted);
+    }
+
+    .board {
+      position: relative;
+      width: 100%;
+      margin-top: 12px;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-1);
+      background: radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.04), transparent 40%), rgba(12, 15, 22, 0.7);
+      padding: 16px 12px 20px 12px;
+      min-height: 460px;
+    }
+
+    .slot-num {
+      position: absolute;
+      left: 12px;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.08));
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      font-weight: 800;
+      color: #f2f4fa;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 8px 18px rgba(0, 0, 0, 0.35);
+      transform: translateY(0px);
+    }
+
+    .card {
+      position: absolute;
+      left: 64px;
+      right: 12px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, rgba(28, 31, 39, 0.95), rgba(19, 22, 29, 0.95));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      color: var(--text-strong);
+      transform: translateY(0px);
+      will-change: transform;
+    }
+
+    .card:hover {
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+      transform: translateY(-2px);
+    }
+
+    .card:focus-visible {
+      outline: 2px solid rgba(107, 123, 255, 0.6);
+      outline-offset: 4px;
+    }
+
+    .name {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: var(--mobile-padding);
+      }
+      .card {
+        padding: 12px 14px;
+      }
+      .rank {
+        min-width: 36px;
+        height: 36px;
+      }
+      .name {
+        font-size: 16px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        scroll-behavior: auto !important;
+        transition-duration: 0ms !important;
+        animation-duration: 0ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>Real Time Freeman Family Comedy Rankings</h1>
+      <p class="subtitle">Dynamic shuffle with live, card-like moves.</p>
+    </header>
+
+    <div class="board" id="board"></div>
+  </div>
+
+  <!-- anime.js CDN without integrity to avoid blocked loads in some contexts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" referrerpolicy="no-referrer"></script>
+  <script>
+    (function () {
+      const names = [
+        { name: "Dad", fixed: true },
+        { name: "Rob", fixed: false },
+        { name: "Edie", fixed: false },
+        { name: "Liv", fixed: false },
+        { name: "Scout", fixed: false },
+        { name: "Paddie Bear", fixed: false },
+        { name: "Moosie", fixed: false },
+        { name: "DJ", fixed: false },
+        { name: "Mom", fixed: true }
+      ];
+
+      const board = document.getElementById("board");
+      const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const SHUFFLE_MS = 3000;
+      const cardHeight = 68;
+      const cardGap = 10;
+      const slotOffset = 0;
+
+      const dynamicNames = names.filter(n => !n.fixed).map(n => n.name);
+      let currentOrder = [...dynamicNames];
+      const cards = new Map();
+
+      function createCard(name, fixed) {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.dataset.key = name;
+        card.innerHTML = `<div class="name">${name}</div>`;
+        return card;
+      }
+
+      function renderBoard() {
+        board.innerHTML = "";
+        cards.clear();
+
+        // Static slot numbers
+        const items = getRanked();
+        items.forEach((_, idx) => {
+          const num = document.createElement("div");
+          num.className = "slot-num";
+          num.textContent = idx + 1;
+          num.style.transform = `translateY(${idx * (cardHeight + cardGap) + slotOffset}px)`;
+          board.appendChild(num);
+        });
+
+        // Cards (names only)
+        items.forEach((item) => {
+          const card = createCard(item.name, item.fixed);
+          cards.set(item.name, card);
+          board.appendChild(card);
+        });
+
+        layoutStatic();
+      }
+
+      function getRanked() {
+        const middle = currentOrder.map(name => ({ name, fixed: false }));
+        return [names[0], ...middle, names[names.length - 1]];
+      }
+
+      function layoutStatic() {
+        const items = getRanked();
+        items.forEach((item, idx) => {
+          const card = cards.get(item.name);
+          if (!card) return;
+          card.style.transform = `translateY(${idx * (cardHeight + cardGap) + slotOffset}px)`;
+        });
+        board.style.height = `${items.length * (cardHeight + cardGap) - cardGap + 32 + slotOffset}px`;
+      }
+
+      function fisherYates(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function animateShuffle() {
+        const items = getRanked();
+        const targets = items.map((item, idx) => {
+          const card = cards.get(item.name);
+          return {
+            card,
+            y: idx * (cardHeight + cardGap) + slotOffset
+          };
+        });
+
+        const duration = reduceMotion ? 150 : 800;
+        const easing = reduceMotion ? "linear" : "easeInOutCubic";
+
+        anime({
+          targets: targets.map(t => t.card),
+          translateY: (_, i) => targets[i].y,
+          scale: reduceMotion ? 1 : [1.012, 1],
+          rotate: reduceMotion ? 0 : [() => (Math.random() - 0.5) * 3, 0],
+          duration,
+          delay: (_, i) => reduceMotion ? 0 : i * 30,
+          easing,
+        });
+      }
+
+      function shuffle() {
+        currentOrder = fisherYates(currentOrder);
+        animateShuffle();
+      }
+
+      function start() {
+        renderBoard();
+        setInterval(shuffle, SHUFFLE_MS);
+      }
+
+      start();
+    })();
+  </script>
+</body>
+</html>
+
